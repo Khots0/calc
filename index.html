@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interactive Earnings Calculator for Teachers</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; line-height: 1.5; }
+    h1, h2, h3 { text-align: center; }
+    .control, .result, .presets { margin-bottom: 1.5rem; }
+    .control label { display: block; margin-bottom: .5rem; }
+    .control input[type=range] { width: 100%; }
+    .control input[type=number], .control select { width: 100%; padding: .3rem; }
+    .result p { font-size: 1.2rem; margin: .5rem 0; }
+    .presets button { margin: .2rem; padding: .5rem 1rem; }
+    .value-span { font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h1>Earnings Calculator for Teachers</h1>
+
+  <div class="control">
+    <label>Number of students: <span id="studentsVal" class="value-span">8</span></label>
+    <input type="range" id="students" min="1" max="20" step="1" value="8">
+  </div>
+
+  <div class="control">
+    <label>Deals per student / month: <span id="dealsVal" class="value-span">2</span></label>
+    <input type="range" id="deals" min="0.5" max="5" step="0.5" value="2">
+  </div>
+
+  <div class="control">
+    <label>Average auction value (€): <span id="valueVal" class="value-span">8000</span></label>
+    <input type="range" id="value" min="3000" max="25000" step="500" value="8000">
+  </div>
+
+  <div class="control">
+    <label>Student activity level:</label>
+    <select id="activity">
+      <option value="1">Full-time (×1)</option>
+      <option value="0.5">Part-time (×0.5)</option>
+    </select>
+  </div>
+
+  <div class="control">
+    <label>Participation rate: <span id="participationVal" class="value-span">100%</span></label>
+    <input type="range" id="participation" min="10" max="100" step="10" value="100">
+  </div>
+
+  <div class="control">
+    <label>Typical teacher salary (€):</label>
+    <input type="number" id="salary" min="800" max="5000" step="50" value="1000">
+  </div>
+
+  <hr>
+
+  <div class="result">
+    <h2>Projected Earnings</h2>
+    <p>Monthly teacher earnings: €<span id="monthlyEarnings">320.00</span></p>
+    <p>Annual teacher earnings: €<span id="annualEarnings">3840.00</span></p>
+    <p>This is <span id="salaryMultiple">0.32×</span> your current monthly salary.</p>
+  </div>
+
+  <div class="presets">
+    <h3>Scenario Presets</h3>
+    <button id="conservative">Conservative</button>
+    <button id="realistic">Realistic</button>
+    <button id="ambitious">Ambitious</button>
+  </div>
+
+  <script>
+    // Commission rates
+    const STUDENT_RATE = 0.10;   // 10% of sales
+    const TEACHER_RATE = 0.025;  // 2.5% of student revenue
+
+    // Grab DOM elements
+    const studentsEl      = document.getElementById('students');
+    const dealsEl         = document.getElementById('deals');
+    const valueEl         = document.getElementById('value');
+    const activityEl      = document.getElementById('activity');
+    const participationEl = document.getElementById('participation');
+    const salaryEl        = document.getElementById('salary');
+
+    const studentsVal      = document.getElementById('studentsVal');
+    const dealsVal         = document.getElementById('dealsVal');
+    const valueVal         = document.getElementById('valueVal');
+    const participationVal = document.getElementById('participationVal');
+
+    const monthlyEarningsEl   = document.getElementById('monthlyEarnings');
+    const annualEarningsEl    = document.getElementById('annualEarnings');
+    const salaryMultipleEl    = document.getElementById('salaryMultiple');
+
+    // Update display of slider values + recalc
+    function update() {
+      // Read inputs
+      const students      = parseFloat(studentsEl.value);
+      const deals         = parseFloat(dealsEl.value);
+      const avgValue      = parseFloat(valueEl.value);
+      const activityMult  = parseFloat(activityEl.value);
+      const participation = parseFloat(participationEl.value) / 100;
+      const salary        = parseFloat(salaryEl.value) || 1;
+
+      // Echo slider labels
+      studentsVal.textContent      = students;
+      dealsVal.textContent         = deals;
+      valueVal.textContent         = avgValue;
+      participationVal.textContent = Math.round(participation * 100) + '%';
+
+      // Effective students engaging
+      const effectiveStudents = students * participation * activityMult;
+
+      // Earnings formula
+      // monthlyTeacher = effectiveStudents × deals × avgValue × STUDENT_RATE × TEACHER_RATE
+      const monthlyTeacher = effectiveStudents
+                            * deals
+                            * avgValue
+                            * STUDENT_RATE
+                            * TEACHER_RATE;
+
+      const annualTeacher = monthlyTeacher * 12;
+      const salaryMult    = monthlyTeacher / salary;
+
+      // Render results
+      monthlyEarningsEl.textContent = monthlyTeacher.toFixed(2);
+      annualEarningsEl.textContent  = annualTeacher.toFixed(2);
+      salaryMultipleEl.textContent  = salaryMult.toFixed(2) + '×';
+    }
+
+    // Preset scenarios
+    document.getElementById('conservative').onclick = () => setPreset(5, 1, 5000, 1, 100);
+    document.getElementById('realistic').onclick   = () => setPreset(10, 2, 8000, 1, 100);
+    document.getElementById('ambitious').onclick   = () => setPreset(15, 3, 12000, 1, 100);
+
+    function setPreset(stu, deal, val, act, part) {
+      studentsEl.value      = stu;
+      dealsEl.value         = deal;
+      valueEl.value         = val;
+      activityEl.value      = act;
+      participationEl.value = part;
+      update();
+    }
+
+    // Bind events
+    [studentsEl, dealsEl, valueEl, activityEl, participationEl, salaryEl]
+      .forEach(el => el.addEventListener('input', update));
+
+    // Initial calculation
+    update();
+  </script>
+
+</body>
+</html>
+ 
